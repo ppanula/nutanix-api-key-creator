@@ -1,3 +1,10 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.ruff_cache/
+*.env
+*.env.*
+*.pem
+*.key
+*.p12
+*.pfx

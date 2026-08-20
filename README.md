@@ -46,7 +46,6 @@ python3 nutanix_api_key_creator.py \
   --role-name "Super Admin" \
   --write-env ./nutanix-api.env \
   --env-prefix pc \
-  --insecure \
   --yes
 ```
 
@@ -65,7 +64,6 @@ python3 nutanix_api_key_creator.py \
   --role-name "Prism Admin" \
   --write-env ./nutanix-api.env \
   --env-prefix pc \
-  --insecure \
   --yes
 ```
 
@@ -86,7 +84,6 @@ python3 nutanix_api_key_creator.py \
   --entity-type ssl_certificate \
   --write-env ./nutanix-api.env \
   --env-prefix pc_ssl \
-  --insecure \
   --create-role \
   --yes
 ```
@@ -114,7 +111,6 @@ python3 nutanix_api_key_creator.py \
   --entity-type ahv_vm \
   --write-env ./nutanix-api.env \
   --env-prefix pc_vm \
-  --insecure \
   --create-role \
   --yes
 ```
@@ -138,7 +134,7 @@ The tool can fetch and format the IAM operation catalog without `curl` or `jq`:
 python3 nutanix_api_key_creator.py \
   --pc prismcentral.example.com \
   --list-operations \
-  --insecure
+  --details
 ```
 
 The default output shows client groups, operation names, and entity types. Add endpoint and HTTP method details:
@@ -148,8 +144,7 @@ python3 nutanix_api_key_creator.py \
   --pc prismcentral.example.com \
   --list-operations \
   --operation-filter ssl \
-  --details \
-  --insecure
+  --details
 ```
 
 Use JSON output for automation:
@@ -158,8 +153,7 @@ Use JSON output for automation:
 python3 nutanix_api_key_creator.py \
   --pc prismcentral.example.com \
   --list-operations \
-  --json \
-  --insecure
+  --json
 ```
 
 List unique entity types:
@@ -167,8 +161,7 @@ List unique entity types:
 ```bash
 python3 nutanix_api_key_creator.py \
   --pc prismcentral.example.com \
-  --list-entity-types \
-  --insecure
+  --list-entity-types
 ```
 
 Listing modes are read-only and do not require `--yes`.
@@ -204,7 +197,7 @@ The exact role list depends on the Prism Central release and installed services.
 
 - Do not pass passwords or API keys as command-line arguments.
 - Store environment files with mode `0600`.
-- `--insecure` disables TLS verification; use a trusted CA in production.
+- TLS verification is enabled by default. Use `--insecure` only for temporary testing with a known endpoint.
 - Each normal execution creates a new API key and authorization policy.
 - Use `--reuse-existing` only when intentionally creating another key for an existing service account.
 - Review custom roles and authorization policies before using them in production.
