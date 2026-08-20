@@ -21,6 +21,97 @@ Show help:
 python3 nutanix_api_key_creator.py --help
 ```
 
+## Command-line options
+
+### Connection and authentication
+
+| Option | Description |
+| --- | --- |
+| `--pc PC` | Required Prism Central FQDN or IP address. |
+| `--username USERNAME` | Administrator username. If omitted, the tool prompts for it. |
+| `--api-version VERSION` | IAM API version. Defaults to `auto`, which probes supported versions. |
+| `--insecure` | Disable TLS certificate verification. Use only for temporary testing. |
+
+The administrator password is always requested interactively and is never accepted as a command-line argument.
+
+### Service account and API key
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `--service-account NAME` | `svc-api-automation` | Service-account username to create or reuse. |
+| `--display-name TEXT` | `Nutanix API automation` | Service-account display name. |
+| `--first-name TEXT` | `Nutanix` | Service-account first name. |
+| `--last-name TEXT` | `Automation` | Service-account last name. |
+| `--email ADDRESS` | None | Optional service-account email address. |
+| `--description TEXT` | `Service account for API automation` | Service-account description. |
+| `--key-name NAME` | `api-automation` | Name of the generated API key. |
+| `--reuse-existing` | Off | Reuse an existing service account with the requested username instead of failing. A new key is still created. |
+
+### Built-in and custom roles
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `--role-name NAME` | `Prism Admin` | Existing role to assign, or the name of a new role with `--create-role`. |
+| `--create-role` | Off | Create a custom role instead of finding an existing role. |
+| `--role-description TEXT` | `Custom role for limited API automation` | Description for a custom role. |
+| `--operation-name NAME` | None | Operation display name to include in a custom role. Repeat for multiple operations. Required with `--create-role`. |
+| `--entity-type TYPE` | None | Entity type to include in a custom role. Repeat for multiple entity types. Required with `--create-role`. |
+
+Example custom role options:
+
+```bash
+--create-role \
+--role-name "SSL Certificate Updater" \
+--operation-name View_Cluster_SSL_Certificate \
+--operation-name Update_Cluster_SSL_Certificate \
+--entity-type ssl_certificate
+```
+
+### Authorization policy
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `--policy-name NAME` | `<service-account> authorization policy` | Authorization-policy display name. |
+| `--policy-description TEXT` | `Authorization policy for API automation` | Authorization-policy description. |
+| `--entity-scope VALUE` | `*` | Entity scope written to the authorization policy. |
+
+The default wildcard scope is convenient for API automation but should be reviewed when using custom roles.
+
+### API-key output
+
+| Option | Description |
+| --- | --- |
+| `--write-env PATH` | Write the Prism Central host and generated API key to a shell environment file. |
+| `--env-prefix PREFIX` | Prefix for variables written with `--write-env`; required with that option. |
+| `--yes` | Required confirmation before creating a service account, API key, role, or policy. |
+
+When `--write-env` is used with `--env-prefix pc`, the tool writes:
+
+```bash
+NUTANIX_PC_HOST="prismcentral.example.com"
+NUTANIX_PC_API_KEY="..."
+```
+
+The file is created with mode `0600`. Without `--write-env`, the generated API key is printed once.
+
+### Read-only catalog listing
+
+| Option | Description |
+| --- | --- |
+| `--list-operations` | Fetch and display IAM operations, then exit without changes. |
+| `--list-entity-types` | Fetch and display unique IAM entity types, then exit without changes. |
+| `--operation-filter TEXT` | Case-insensitive filter applied to operation listing results. |
+| `--details` | Include endpoint paths and HTTP methods in operation listings. |
+| `--json` | Output listing results as JSON. |
+
+Listing modes do not require `--yes`. `--list-operations` and `--list-entity-types` are mutually exclusive.
+
+### General
+
+| Option | Description |
+| --- | --- |
+| `-h`, `--help` | Display command-line help and exit. |
+
 ## How the tool works
 
 For a normal role, the tool:
