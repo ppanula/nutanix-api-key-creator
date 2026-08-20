@@ -1,10 +1,11 @@
 import json
 import stat
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import nutanix_api_key_creator as tool
 
@@ -142,6 +143,97 @@ class UtilityTests(unittest.TestCase):
             payload["identities"][0]["$reserved"]["user"]["uuid"]["anyof"],
             ["service-account-id"],
         )
+
+    def test_parse_args_supports_repeated_custom_role_options(self):
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "tool",
+                "--pc",
+                "pc.example.com",
+                "--create-role",
+                "--operation-name",
+                "View_Cluster",
+                "--operation-name",
+                "View_Host",
+                "--entity-type",
+                "cluster",
+                "--entity-type",
+                "host",
+                "--yes",
+            ],
+        ):
+            args = tool.parse_args()
+
+        self.assertEqual(
+            args.operation_name, ["View_Cluster", "View_Host"]
+        )
+        self.assertEqual(args.entity_type, ["cluster", "host"])
+        self.assertTrue(args.create_role)
+
+    def test_validate_args_requires_confirmation_for_changes(self):
+        args = SimpleNamespace(
+            list_operations=False,
+            list_entity_types=False,
+            yes=False,
+            write_env=None,
+            env_prefix=None,
+            create_role=False,
+            operation_name=[],
+            entity_type=[],
+        )
+
+        with self.assertRaisesRegex(tool.NutanixApiError, "--yes"):
+            tool.validate_args(args)
+
+    def test_validate_args_requires_env_prefix(self):
+        args = SimpleNamespace(
+            list_operations=False,
+            list_entity_types=False,
+            yes=True,
+            write_env="api.env",
+            env_prefix=None,
+            create_role=False,
+            operation_name=[],
+            entity_type=[],
+        )
+
+        with self.assertRaisesRegex(tool.NutanixApiError, "--env-prefix"):
+            tool.validate_args(args)
+
+    def test_validate_args_requires_custom_role_inputs(self):
+        base = {
+            "list_operations": False,
+            "list_entity_types": False,
+            "yes": True,
+            "write_env": None,
+            "env_prefix": None,
+            "create_role": True,
+            "operation_name": [],
+            "entity_type": [],
+        }
+
+        with self.assertRaisesRegex(tool.NutanixApiError, "--operation-name"):
+            tool.validate_args(SimpleNamespace(**base))
+
+        base["operation_name"] = ["View_Cluster"]
+        with self.assertRaisesRegex(tool.NutanixApiError, "--entity-type"):
+            tool.validate_args(SimpleNamespace(**base))
+
+    def test_validate_args_allows_read_only_listing_without_confirmation(self):
+        args = SimpleNamespace(
+            list_operations=True,
+            list_entity_types=False,
+            yes=False,
+            write_env=None,
+            env_prefix=None,
+            create_role=False,
+            operation_name=[],
+            entity_type=[],
+        )
+
+        self.assertTrue(tool.validate_args(args))
 
 
 if __name__ == "__main__":

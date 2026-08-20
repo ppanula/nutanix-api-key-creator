@@ -479,11 +479,7 @@ def print_listing(
                 print(f"    {method} {url}")
 
 
-
-
-
-def main():
-    args = parse_args()
+def validate_args(args):
     listing_requested = args.list_operations or args.list_entity_types
     if not listing_requested and not args.yes:
         raise NutanixApiError("refusing changes without --yes")
@@ -497,6 +493,12 @@ def main():
         raise NutanixApiError(
             "--entity-type is required when using --create-role"
         )
+    return listing_requested
+
+
+def main():
+    args = parse_args()
+    listing_requested = validate_args(args)
     if not args.policy_name:
         args.policy_name = f"{args.service_account} authorization policy"
 
